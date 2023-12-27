@@ -64,8 +64,9 @@ public class JdbcStarter {
         var booksById = getBooksById(b);
         System.out.println(booksById);
 
-        String q = "Исток";
-        var booksByIdPr = getBooksByIdWithPreparedStatement(q);
+        String q1 = "Исток";
+        String q2 = "autogenerate";
+        var booksByIdPr = getBooksByIdWithPreparedStatement(q1, q2);
         System.out.println(booksByIdPr);
 
     }
@@ -92,11 +93,11 @@ public class JdbcStarter {
     }
 
     // use PreparedStatement
-    private static List<Integer> getBooksByIdWithPreparedStatement(String name) throws SQLException {
+    private static List<Integer> getBooksByIdWithPreparedStatement(String name1, String name2) throws SQLException {
         String sqlPrep = """
                 SELECT id
                 FROM book
-                WHERE name = ?
+                WHERE name = ? OR name = ?
                               
                 """;
         List<Integer> result = new ArrayList<>();
@@ -104,7 +105,12 @@ public class JdbcStarter {
         try (Connection connection = ConnectionManager.open();
              var preparedStatement = connection.prepareStatement(sqlPrep)) {
 
-            preparedStatement.setString(1, name);
+            preparedStatement.setFetchSize(2);
+            preparedStatement.setQueryTimeout(10);
+            preparedStatement.setMaxRows(4);
+
+            preparedStatement.setString(1, name1);
+            preparedStatement.setString(2, name2);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
 //                result.add(resultSet.getInt("id"));
